@@ -1,0 +1,16 @@
+services:
+    db:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        container_name: traininslogger-db
+        environment:
+            ACCEPT_EULA: "Y"
+            MSSQL_SA_PASSWORD: "${DB_PASSWORD}"
+            MSSQL_PID: "Developer"
+        ports:
+            - "${DB_PORT}:1433"
+        volumes:
+            - trainingslog-data:/var/opt/mssql
+        restart: unless-stopped
+
+volumes:
+    trainingslog-data:

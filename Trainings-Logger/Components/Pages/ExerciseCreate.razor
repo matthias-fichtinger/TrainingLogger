@@ -1,0 +1,37 @@
+﻿@page "/exercises/create"
+@rendermode InteractiveServer
+@inject IDbContextFactory<AppDbContext> DbContextFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Übung erstellen</PageTitle>
+<h3>Neue Übung</h3>
+
+<EditForm Model="exercise" OnValidSubmit="Save" FormName="createExercsie">
+	<DataAnnotationsValidator />
+	<ValidationSummary />
+	<div class="mb-3">
+		<label for="name" class="form-label">Name</label>
+		<InputText id="name" class="form-control" @bind-Value="exercise.Name" />
+	</div>
+	<div class="mb-3">
+		<label for="muscleGroup" class="form-label">Muskelgruppe</label>
+		<InputText id="muscleGroup" class="form-control" @bind-Value="exercise.MuscleGroup" />
+	</div>
+	<div class="mb-3 form-check">
+		<InputCheckbox id="isBodyweight" class="form-check-input" @bind-Value="exercise.IsBodyweight" />
+		<label for="isBodyweight" class="form-check-label">Körpergewicht</label>
+	</div>
+	<button type="submit" class="btn btn-primary">Speichern</button>
+	<a href="/exercises" class="btn btn-secondary">Abbrechen</a>
+</EditForm>
+@code {
+	private Exercise exercise = new Exercise();
+
+	private async Task Save()
+		{
+			using var dbContext = DbContextFactory.CreateDbContext();
+			dbContext.Exercises.Add(exercise);
+			await dbContext.SaveChangesAsync();
+			NavigationManager.NavigateTo("/exercises");
+		}
+}

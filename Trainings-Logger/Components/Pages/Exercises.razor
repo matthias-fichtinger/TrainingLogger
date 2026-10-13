@@ -1,0 +1,47 @@
+﻿@page "/exercises"
+@inject IDbContextFactory<AppDbContext> DbContextFactory
+
+<PageTitle>Übungen</PageTitle>
+<h3>Übungen</h3>
+
+<a href="/exercises/create" 3>Neue Übung</a>
+
+@if (exercises is null)
+{
+	<p><em>Lade Übungen...</em></p>
+}
+else if (exercises.Count == 0)
+{
+	<p>Noch keine Übungen angelegt.</p>
+}
+else
+{
+	<table class="table">
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>Muskelgruppe</th>
+				<th>Körpergewicht</th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var exercise in exercises)
+			{
+				<tr>
+					<td>@exercise.Name</td>
+					<td>@exercise.MuscleGroup</td>
+					<td>@(exercise.IsBodyweight ? "Ja" : "Nein")</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+}
+
+@code{
+	private List<Exercise>? exercises;
+	protected override async Task OnInitializedAsync()
+	{
+		using var dbContext = DbContextFactory.CreateDbContext();
+		exercises = await dbContext.Exercises.OrderBy(e => e.Name).ToListAsync();
+	}
+}

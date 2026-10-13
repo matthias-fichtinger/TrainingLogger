@@ -1,0 +1,34 @@
+﻿@page "/workouts/create"
+@rendermode InteractiveServer
+@inject IDbContextFactory<AppDbContext> DbContextFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Workout Create</PageTitle>
+<h3>WorkoutCreate</h3>
+
+<EditForm Model="workout" OnValidSubmit="Save" FormName="createWorkout">
+	<DataAnnotationsValidator/>
+	<ValidationSummary/>
+	<div class="mb-3">
+		<label for="date" class="form-label">Datum</label>
+		<InputDate id="date" class="form-control" @bind-Value="workout.Date"/>
+	</div>
+	<div class="mb-3">
+		<label for="note" class="form-label">Muskelgruppe</label>
+		<InputText id="note" class="form-control" @bind-Value="workout.Note" />
+	</div>
+	<button type="submit" class="btn btn-primary">Speichern</button>
+	<a href="/workouts" class="btn btn-secondary">Abbrechen</a>
+</EditForm>
+
+@code {
+	private Workout workout = new Workout();
+
+	private async Task Save()
+	{
+		using var dbContext = DbContextFactory.CreateDbContext();
+		dbContext.Workouts.Add(workout);
+		await dbContext.SaveChangesAsync();
+		NavigationManager.NavigateTo($"/workouts/{workout.Id}");
+	}
+}

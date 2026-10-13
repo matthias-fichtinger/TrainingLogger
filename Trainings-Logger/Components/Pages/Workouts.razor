@@ -1,0 +1,40 @@
+﻿@page "/workouts"
+@inject IDbContextFactory<AppDbContext> DbContextFactory
+@rendermode InteractiveServer
+
+<PageTitle>Training</PageTitle>
+<h3>Workout</h3>
+
+<a href="/workouts/create" class="btn btn-primary mb-3">Create</a>
+
+
+@if(workouts is null){
+	<p><em>Loading...</em></p>
+}
+else if(workouts.Count == 0)
+{
+	<p>Noch keine Workouts gealden</p>
+}
+else{
+	<DxGrid Data="@workouts" ShowFilterRow="true" PageSize="10">
+		<Columns>
+			<DxGridDataColumn FieldName="Date" Caption="Datum" DisplayFormat="dd.MM.yyyy" />
+			<DxGridDataColumn FieldName="Note" Caption="Notiz" />
+			<DxGridDataColumn Caption="Sätze">
+				<CellDisplayTemplate>
+					@(((Workout)context.DataItem).Sets.Count)
+				</CellDisplayTemplate>
+			</DxGridDataColumn>
+		</Columns>
+	</DxGrid>
+}
+
+@code {
+	private List<Workout>? workouts;
+
+	protected override async Task OnInitializedAsync()
+	{
+		using var dbContext = DbContextFactory.CreateDbContext();
+		workouts = await dbContext.Workouts.OrderByDescending(w => w.Date).ToListAsync();
+	}
+}

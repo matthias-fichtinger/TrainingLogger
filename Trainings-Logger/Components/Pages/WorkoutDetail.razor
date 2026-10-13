@@ -1,0 +1,105 @@
+﻿@page "/workouts/{Id:int}"
+@rendermode InteractiveServer
+@inject IDbContextFactory<AppDbContext> DbContextFactory
+
+<PageTitle>Training</PageTitle>
+<h3>WorkoutDetail</h3>
+
+@if (workout is null)
+{
+    <p><em>Laden…</em></p>
+}
+else
+{
+    <h3>Training vom @workout.Date.ToString("dd.MM.yyyy")</h3>
+    <p>@workout.Note</p>
+
+    <h4>Sätze</h4>
+    @if (workout.Sets.Count == 0)
+    {
+        <p>Noch keine Sätze erfasst.</p>
+    }
+    else
+    {
+        <table class="table">
+            <thead>
+                <tr><th>Übung</th><th>Wdh.</th><th>Gewicht</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var s in workout.Sets)
+                {
+                    <tr>
+                        <td>@s.Exercise?.Name</td>
+                        <td>@s.Reps</td>
+                        <td>@s.Weight kg</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    <h4>Satz hinzufügen</h4>
+    <EditForm Model="newSet" OnValidSubmit="AddSet" FormName="addSet">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label class="form-label">Übung</label>
+            <InputSelect @bind-Value="newSet.ExerciseId" class="form-select">
+                <option value="0">Bitte wählen…</option>
+                @foreach (var e in exercises)
+                {
+                    <option value="@e.Id">@e.Name</option>
+                }
+            </InputSelect>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Wiederholungen</label>
+            <InputNumber @bind-Value="newSet.Reps" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Gewicht (kg)</label>
+            <InputNumber @bind-Value="newSet.Weight" class="form-control" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Hinzufügen</button>
+    </EditForm>
+
+    <a href="/workouts" class="btn btn-secondary mt-3">Zurück</a>
+}
+
+
+@code {
+	[Parameter]
+	public int Id { get; set; }
+
+	private Workout? workout;
+	private List<Exercise> exercises = new List<Exercise>();
+	private WorkoutSet newSet = new WorkoutSet();
+
+	protected override async Task OnParametersSetAsync()
+	{
+		using var db = await DbContextFactory.CreateDbContextAsync();
+		exercises = await db.Exercises.OrderBy(e => e.Name).ToListAsync();
+		await LoadWorkout();
+	}
+
+	private async Task LoadWorkout()
+	{
+		using var db = await DbContextFactory.CreateDbContextAsync();
+		workout = await db.Workouts.Include(w => w.Sets).ThenInclude(s => s.Exercise).FirstOrDefaultAsync(w => w.Id == Id);
+	}
+
+	private async Task AddSet()
+	{
+		using var db = await DbContextFactory.CreateDbContextAsync();
+		newSet.WorkoutId = Id;
+		db.Sets.Add(newSet);
+		await db.SaveChangesAsync();
+
+		newSet = new WorkoutSet();
+		await LoadWorkout();
+	}
+}
