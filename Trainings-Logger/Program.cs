@@ -13,6 +13,8 @@ builder.Services.AddDbContextFactory<AppDbContext>(options =>
 
 builder.Services.AddDevExpressBlazor();
 
+//new comment
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
